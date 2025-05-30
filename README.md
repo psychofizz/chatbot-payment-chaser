@@ -4,9 +4,8 @@
 quickly bootstraps a fully featured Local AI and Low Code development
 environment including Ollama for your local LLMs, Open WebUI for an interface to chat with your N8N agents, and Supabase for your database, vector store, and authentication. 
 
-This is Cole's version with a couple of improvements and the addition of Supabase, Open WebUI, Flowise, Neo4j, Langfuse, SearXNG, and Caddy!
-Also, the local RAG AI Agent workflows from the video will be automatically in your 
-n8n instance if you use this setup instead of the base one provided by n8n!
+This is not Cole's version of the product but rather a slight strip down as i attempt to use it as it has many perks like a script that adds supabase in the day that the RAG is implemented into the final product
+
 
 ## Important Links
 
@@ -15,8 +14,6 @@ n8n instance if you use this setup instead of the base one provided by n8n!
 - [GitHub Kanban board](https://github.com/users/coleam00/projects/2/views/1) for feature implementation and bug squashing.
 
 - [Original Local AI Starter Kit](https://github.com/n8n-io/self-hosted-ai-starter-kit) by the n8n team
-
-- Download my N8N + OpenWebUI integration [directly on the Open WebUI site.](https://openwebui.com/f/coleam/n8n_pipe/) (more instructions below)
 
 ![n8n.io - Screenshot](https://raw.githubusercontent.com/n8n-io/self-hosted-ai-starter-kit/main/assets/n8n-demo.gif)
 
@@ -47,11 +44,6 @@ kept unlike Postgres since it's faster than Supabase so sometimes is the better 
 
 ✅ [**Neo4j**](https://neo4j.com/) - Knowledge graph engine that powers tools like GraphRAG, LightRAG, and Graphiti 
 
-✅ [**SearXNG**](https://searxng.org/) - Open source, free internet metasearch engine which aggregates 
-results from up to 229 search services. Users are neither tracked nor profiled, hence the fit with the local AI package.
-
-✅ [**Caddy**](https://caddyserver.com/) - Managed HTTPS/TLS for custom domains
-
 ✅ [**Langfuse**](https://langfuse.com/) - Open source LLM engineering platform for agent observability
 
 ## Prerequisites
@@ -78,7 +70,7 @@ Before running the services, you need to set up your environment variables for S
    ############
    # N8N Configuration
    ############
-   N8N_ENCRYPTION_KEY=
+   #N8N_ENCRYPTION_KEY= Set this one up if it's for production, otherwise it's going to complain about the encryption key not matching up with 
    N8N_USER_MANAGEMENT_JWT_SECRET=
 
    ############
