@@ -1,0 +1,196 @@
+{
+  "name": "Customer chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a customer service assistant. Your task is to extract a 13-digit identity card number from the user's message.\nThe identity card number format is 13 digits (e.g., 0801199900001).\nIf the user sends it with - then remove them before trying on the HTTP request\nThen use the tool 'checkCustomerID' to check if they exist\nIf they exist tell them their full_name as a greeting and ask them \"en un momento de compartire tus deudas\"\nIf no identity card number is found, or the intent is not clear, respond with:\n\"\"\"Lo siento, no hemos encontrado un registro con los datos proporcionados. Por favor, verifica tu información e intenta de nuevo, o si prefieres, puedo conectarte con un asesor.\"\"\"\nIf they exist use 'checkCustomerDebt' to check the debt and report back how much they owe and tell them. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -200,
+        -140
+      ],
+      "id": "076c4045-d737-4ae7-921b-34c64c3a2d14",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        120
+      ],
+      "id": "cfb61066-6529-495f-9136-bc601d91cbc6",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "iS0JTNzLmBfqbvm1",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "check if the customer is found",
+        "url": "=http://host.docker.internal:4001/api/customer/{{ $fromAI('identity_card_number', '', 'string') }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        120
+      ],
+      "id": "5c15761e-fdc5-45ff-971d-bfd60e0369d5",
+      "name": "checkCustomerID"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  output: $input\n    .first()\n    .json.output.replace(/[\\s\\S]*?<\\/think>\\s*/g, \"\")\n    .trim(),\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -140
+      ],
+      "id": "c2b72ee1-b8e0-4f82-a8ad-7d45929bb05b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoke-customer-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        -20
+      ],
+      "id": "2d5bc4a8-77c3-475c-b544-1e9bad04c32c",
+      "name": "Webhook",
+      "webhookId": "be119cec-b1e7-4208-9c8a-16f9ae5dec36"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        -140
+      ],
+      "id": "b14413c5-3085-46c8-b3cd-612780e1fafd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Check how much the customer owes",
+        "url": "=http://host.docker.internal:4001/api/invoice/{{ $fromAI('identity_card_number', '', 'string') }}/amount_owed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        120
+      ],
+      "id": "3817c391-044d-4c29-90b0-22d9d05d5fa0",
+      "name": "checkCustomerDebt"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "checkCustomerID": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "checkCustomerDebt": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "72d3006f-afda-4da9-b795-ee04c7bc8ea6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "86abea1f0cff028bc07c10c4a5535d901236dc288933e081f5b6f020bc04be14"
+  },
+  "id": "aZeXmQLE5973TV9f",
+  "tags": []
+}
